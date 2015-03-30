@@ -65,7 +65,7 @@ routes['ack:message'] = function (key) {
 routes['get:stream'] = function (queueName) {
     var queueStream = queuePool[queueName].getStream();
     queueStream.on('ready', function (queue) {
-        log('help', '%s queue stream is ready', queue);
+        log('info', '%s queue stream is ready', queue);
     });
 
     queueStream.on('data', _.partial(consumeMessage, queueName));

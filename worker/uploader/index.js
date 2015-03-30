@@ -8,12 +8,9 @@
  * @module uploader
  */
 
-var fs = require('fs'),
-    _ = require('lodash'),
+var _ = require('lodash'),
     async = require('async'),
-    domain = require('domain'),
-    Uploader = require('jmUtil').ydUploader,
-    es = require('event-stream');
+    Uploader = require('jmUtil').ydUploader;
 
 var args = require('../parseArguments')(process.argv);
 
@@ -102,15 +99,14 @@ var uploadItem = function (data, callback) {
             uploadsAmount += 1;
             var logMetadata =
                 {upload: true, url: data.url, locale: data.locale, page: data.page, uploadsAmount: uploadsAmount};
-            log('success', res + ' time: ' + Date.now(), logMetadata);
             log('info', res, logMetadata);
-            router.send('message:uploaded', data.messageKey);
+            router.send('message:uploaded', {key: data.messageKey, message: data.origMessage, locale: data.locale});
         }
         uploadPageTimeDiff.stop();
         callback();
     };
 
-    log('info', 'start uploading new file', helper.getMeta(data));
+    log('start uploading new file', helper.getMeta(data));
 
     var url = (data.url === '/') ? 'index' : data.url;
 
@@ -132,30 +128,24 @@ var uploadItem = function (data, callback) {
  * @param  {object} source
  */
 var uploadStream = function (source) {
-    return es.map(function (data, callback) {
-        var next = function (err, res) {
-            if (source) {
-                source.resume();
-            }
-            callback(err, res);
-        };
+    return stream.map(function (data, callback) {
 
         if (_.isArray(data)) {
             log('new data to upload type: array length:', data.length);
-            return async.each(data, uploadItem, next);
+            return async.each(data, uploadItem, callback);
         }
 
         log('new data to upload type: string');
 
-        uploadItem(data, next);
-    });
+        uploadItem(data, callback);
+    }, source).apply();
 };
 
 
 process.send({ready: true});
 
-messageStream.pipe(uploadStream());
-
+//messageStream.pipe(uploadStream());
+uploadStream(messageStream);
 
 process.on('uncaughtException', error.getErrorHandler(log, function (err) {
     router.send('error', err);

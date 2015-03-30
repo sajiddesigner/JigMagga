@@ -1,5 +1,6 @@
 var stealBuild = require("steal"),
     es = require('event-stream'),
+    path = require('path'),
     helper = require('./helper.js'),
     async = require('async'),
     util = require("util"),
@@ -14,13 +15,23 @@ var stealBuild = require("steal"),
 function setupStealconfig(steal, item, cb) {
     var loadFile = function (options) {
         var src = typeof options.src === "string" ? options.src : options.src.path;
+        var rootPath = path.join(__dirname, '../..');
+
+        if (src.indexOf(rootPath) < 0 && src.indexOf(path.join(rootPath, '..')) >= 0) {
+            src = src.replace(path.join(rootPath, '..'), rootPath);
+        } else {
+            src = (src.indexOf(rootPath) >= 0) ? src : path.join(rootPath, src);
+        }
+
         return fs.readFileSync(src, {
             encoding: "utf8"
         });
     };
+
     global.window = {};
     global.window = global;
     steal.config({
+        namespace: item.namespace,
         root: item.build.jigMaggaPath,
         pathToBuild: "/" + helper.getRelativePathFromStealRootPath(item.build.pageHTMLPath, item.build.jigMaggaPath),
         isBuild: true,

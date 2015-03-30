@@ -6,6 +6,7 @@ var path = require('path'),
     es = require('event-stream'),
     extend = require('deep-extend'),
     archiver = require('archiver'),
+    _ = require('lodash'),
     Uploader = require('jmUtil').ydUploader,
     configMerger = require('./configMerger'),
     originalFs = require('fs'),
@@ -87,7 +88,7 @@ var addToUploadList = function (item, page) {
 };
 
 
-var uploaderInstance;
+var uploaderInstances = {};
 
 module.exports = {
 
@@ -103,11 +104,11 @@ module.exports = {
         var env = isLive ? 'live': 'stage',
             domain = buildOptions.domain;
 
-        if (uploaderInstance) {
-            return uploaderInstance;
+        if (uploaderInstances[domain]) {
+            return uploaderInstances[domain];
         }
 
-        var knoxOptions = config.main.knox;
+        var knoxOptions = _.clone(config.main.knox);
 
         // you can set a --bucket argument
         if(buildOptions.bucket){
@@ -125,8 +126,8 @@ module.exports = {
             }
         }
 
-        uploaderInstance = new Uploader(knoxOptions);
-        return uploaderInstance;
+        uploaderInstances[domain] = new Uploader(knoxOptions);
+        return uploaderInstances[domain];
     },
 
 

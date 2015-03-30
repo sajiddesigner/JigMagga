@@ -173,10 +173,20 @@ var publish = exports.publish = function (message, options, callback) {
 exports.getConnection = function (config) {
     var credentials = config.credentials;
 
-    var amqpUrl = format('amqp://%s:%s@%s/%s',
-        credentials.login, credentials.password, credentials.host, credentials.vhost);
+    var amqpUrl = format('amqp://%s:%s@%s',
+        credentials.login, credentials.password, credentials.host);
+
+    if (credentials.port) {
+        amqpUrl = amqpUrl + ':' + credentials.port;
+    }
+
+    if (credentials.vhost) {
+        amqpUrl = amqpUrl + '/' + credentials.vhost;
+    }
+
+
     if (config.options) {
-        amqpUrl += '?' + querystring.stringify(config.options);
+        amqpUrl = amqpUrl + '?' + querystring.stringify(config.options);
     }
 
     console.log('------[amqpUrl]', amqpUrl);

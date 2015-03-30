@@ -92,10 +92,11 @@ exports.getWorkerErrorHandler = function (log, queuePool, messageStorage, progra
      */
     return function workerErrorHandler(err) {
         var errorMessage = format('Error while processing message: %s',  err.message);
+        err.originalMessage = err.originalMessage || {};
         err.originalMessage.error = true;
         err.originalMessage.status = err.status;
 
-        log('error', errorMessage, err.originalMessage);
+        log('error', errorMessage, err.originalMessage, err.stack);
 
         if (!program.queue) {
             return;

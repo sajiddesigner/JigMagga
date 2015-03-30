@@ -115,8 +115,11 @@ var extractFilePath = function (buildOptions, callback) {
         }
 
         var domain = _.last(buildOptions.domain.split('/'));
+        var parentDomain = _.first(buildOptions.domain.split('/'));
+
         descriptor.from = descriptor.from
             .replace('<%= domain %>', domain)
+            .replace('<%= parentDomain %>', parentDomain)
             .replace('<%= domainPath %>', buildOptions.domain);
 
         exactFilePath = path.join(buildOptions.namespacePath, descriptor.from);
@@ -160,12 +163,20 @@ module.exports = {
             var config = configMerge.getProjectConfig(data.build.namespace);
             data.build.package = data.build.package || {};
 
+            if (_.isString(data.data.assetdomain) && data.data.assetdomain.length) {
+                var result = _.cloneDeep(data);
+                result.build.package.mediaSource = config.media.assetdomain || [];
+                that.emit('data', result);
+                return;
+            }
 
             if (data.build.uploadmedia === true) {
-                return _.each(config.media, function (source) {
-                    var result = _.cloneDeep(data);
-                    result.build.package.mediaSource = source;
-                    that.emit('data', result);
+                return _.each(config.media, function (source, sourceName) {
+                    if (sourceName !== 'assetdomain') {
+                        var result = _.cloneDeep(data);
+                        result.build.package.mediaSource = source;
+                        that.emit('data', result);
+                    }
                 });
             }
             if (!config.media[data.build.uploadmedia]) {
@@ -224,14 +235,14 @@ module.exports = {
                     if (err.code === 'ENOENT' && !data.build.package.mediaSource.required) {
                         console.log('meida file is absent but it is not required');
                         ps.resume();
-                        return callback();
+                        return callback(null, data);
                     }
                     return callback(err);
                 }
 
                 console.log(res || 'all files uploaded');
                 ps.resume();
-                callback();
+                callback(null, data);
             };
 
             console.log('Start uploading files from media by mask:', data.build.package.mediaSource);
@@ -258,12 +269,13 @@ module.exports = {
                 }
             }, function (err, files) {
                 if (err) {
-                    return console.log(err);
+                    return onUpload(err);
                 }
                 // filter all files that non exits
                 files = files.filter(function(file){
                     return file !== null;
                 });
+
                 if(files.length){
                     var fileGroups = createFileGroupsBySize(files, 9500000);
 
@@ -277,6 +289,8 @@ module.exports = {
                             cb();
                         });
                     }, onUpload);
+                } else {
+                    onUpload(null, null);
                 }
 
             });

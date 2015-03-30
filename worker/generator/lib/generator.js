@@ -424,6 +424,9 @@ exports.generatePage = function (origConfig, callback) {
 
 
     generateJigs(config, viewContainer, function (err, config) {
+        if (err) {
+            return callback({message: err});
+        }
         var script = '<script id="' + namespace + '-application-data" type="text/javascript">' +
             ' window.' + namespaceCapital + ' = window.' + namespaceCapital + ' || {};' +
             ' window.' + namespaceCapital + '.predefined = window.' + namespaceCapital + '.predefined || {};' + "\n";

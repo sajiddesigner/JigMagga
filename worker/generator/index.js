@@ -51,7 +51,7 @@ emitter.on('call:success', function (requestId, time, fromCache, page, url) {
             page: page,
             url: url
         };
-        log('info','time diff for %s', requestId, logOptions);
+        log('time diff for %s', requestId, logOptions);
     }});
 
 emitter.on('config:ready', function (readyConfigsLength, configsLength, url) {
@@ -88,8 +88,7 @@ var configStream = es.through(function (data) {
  */
 var apiStream = es.through(function (data) {
     var that = this;
-    log('info', '[*] send api request', helper.getMeta(data.message));
-    log('help', 'generating new message time %d', Date.now(), helper.getMeta(data.message));
+    log('info', 'generating new message time %d', Date.now(), helper.getMeta(data.message));
     // Take first snapshot
     // var apiMessageKey = generator.createApiMessageKey(data.key);
     var apiCallTimeDiff = timeDiff.create('apiCall:message:' + data.message.page);
@@ -250,7 +249,7 @@ messageStream
 
         fileList = htmlFiles.concat(_.flatten(result.json));
 
-        log('info', 'upload list length %d', fileList.length,  helper.getMeta(data.message));
+        log('upload list length %d', fileList.length,  helper.getMeta(data.message));
         //if the amount is more then 200 create an archive write it to disk and
         //send to the worker the archive link
 

@@ -3,13 +3,45 @@
 
 var jmUtil = require('jmUtil'),
     es = require('event-stream'),
+    _ = require('lodash'),
     path = require('path'),
+    request = require('request'),
     konphyg = require('konphyg'),
     async = require('async'),
     util = require('util');
 
 
-function callPageConfigUtil() {
+var isDomain = function (name) {
+    var regex = /^([a-zA-Z0-9]+\.)?[a-zA-Z0-9][a-zA-Z0-9-]+\.[a-zA-Z]{2,6}?$/i;
+
+    return regex.test(name);
+};
+
+var onEnoent = function (projectConfig, page, callback) {
+    var configName = _.last(page.split('/')).replace(/\.conf$/, '');
+
+    if(!isDomain(configName)) {
+        return callback(null, {});
+    }
+
+    request.get(projectConfig.configStoreApiEndpoint, {
+        json: true,
+        qs: {url: configName}
+    }, function (err, res) {
+        if (err) {
+            return callback(err);
+        }
+        if (!res.body[0]) {
+            return callback("no config in DB for domain " + configName);
+        }
+
+        callback(null, res.body[0].config);
+    });
+
+};
+
+function callPageConfigUtil(getProjectConfig) {
+
     return es.map(function (data, callback) {
         if (!data.build.basePath) {
             throw new Error("There is no basepath");
@@ -17,10 +49,17 @@ function callPageConfigUtil() {
         if (!data.build.domain) {
             throw new Error("There are no domain settings");
         }
-        jmUtil.configMerge.getPageConfig(data.build.basePath, data.build.domain, data.build.page, function (err, result) {
-            data.data = result;
-            callback(null, data);
-        });
+
+        var onEnoentError = onEnoent.bind(null, getProjectConfig(data.build.namespace).main);
+
+        jmUtil.configMerge.getPageConfig(data.build.basePath, data.build.domain, data.build.page, onEnoentError,
+            function (err, result) {
+                if (err) {
+                    return callback(err);
+                }
+                data.data = result;
+                callback(null, data);
+            });
     });
 }
 
@@ -43,7 +82,7 @@ module.exports = {
      * @returns {*}
      */
     getConfig: function () {
-        return callPageConfigUtil();
+        return callPageConfigUtil(this.getProjectConfig);
     },
 
     /**
@@ -52,9 +91,10 @@ module.exports = {
      * @param domain
      * @returns {*}
      */
-    getConfigFromPageItem: function (page, basePath, domain, cb) {
+    getConfigFromPageItem: function (page, basePath, domain, namespace, cb) {
 
-        jmUtil.configMerge.getPageConfig(basePath, domain, page, cb);
+        var onEnoentError = onEnoent.bind(null, this.getProjectConfig(namespace).main);
+        jmUtil.configMerge.getPageConfig(basePath, domain, page, onEnoentError, cb);
 
     },
 
@@ -92,7 +132,7 @@ module.exports = {
                 throw new Error("Stream need build object with {basePath: \"\", domain: \"\"} ");
             }
             async.mapLimit(data.build.pages, 1, function (item, cb) {
-                self.getConfigFromPageItem(item, data.build.basePath, data.build.domain, function (err, result) {
+                self.getConfigFromPageItem(item, data.build.basePath, data.build.domain, data.build.namespace, function (err, result) {
                     if (err) {
                         console.log(item);
                         throw err;

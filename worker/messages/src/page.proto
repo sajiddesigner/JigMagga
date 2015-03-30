@@ -1,0 +1,24 @@
+package com.takeaway.events.cdn.page;
+
+/**
+ * Represents the current status of a page in our CDN.
+ * Please note, that only for UPLOADED status
+ * there will be files in the specified bucket.
+ */
+enum PageStatus {
+  GENERATING = 0;   /// The worker is about to (re-)generate a page
+  UPLOADED = 1;     /// The worker finished creating & uploading of a page
+  DELETED = 2;      /// The file has been removed from within the manager tool
+  ERROR = 3;        /// Some error occured while create/upload
+}
+
+/**
+ * A CDN event, fired before generating and after uploading / deleting a specific file
+ */
+message PageAltered
+{
+  required PageStatus status = 1;   /// See `enum Status`
+  required string url = 2;          /// The URL of the page, without host, ie: some-restaurant
+  required string domain = 3;       /// Domain/portal the user is being tracked on, ie: lieferando.de
+  required string bucket = 4;       /// The bucket it is/will be uploaded to, ie: deploy-2-7-3.lieferando.de
+}

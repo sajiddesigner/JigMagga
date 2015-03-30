@@ -1,0 +1,13 @@
+package com.takeaway.events.htmlworker;
+
+
+/**
+ * A CDN event, fired before generating and after uploading / deleting a specific file
+ */
+message MessageProcessed
+{
+  optional string page = 1;         /// the page type ie: menu, ratings, service
+  optional string url = 2;          /// The URL of the page, without host, ie: some-restaurant
+  required string domain = 3;       /// Domain/portal the user is being tracked on, ie: lieferando.de
+  optional string bucket = 4;       /// The bucket it is/will be uploaded to, ie: deploy-2-7-3.lieferando.de
+}

@@ -6,40 +6,6 @@ var _ = require('lodash');
 
 
 module.exports = {
-    /**
-     * filter message in stream by predicate
-     * 
-     * @param  {function} predicate
-     * @return {Duplex}
-     */
-    filter: function (predicate) {
-        var isAsync = (predicate.length === 2);
-
-        if (!isAsync) {
-            return es.through(function (data) {
-                try {
-                    if (predicate.call(this, data)) {
-                        this.emit('data', data);
-                    }
-                } catch (e) {
-                    this.emit('error', e);
-                }
-            });
-        }
-
-        return es.map(function (data, callback) {
-            predicate(data, function (err, res) {
-                if (err) {
-                    return callback(err);
-                }
-                if (res) {
-                    return callback(null, data);
-                }
-                callback();
-            });
-        });
-    },
-
 
     /**
      * create a duplex stream that obtain message and emit it to consumer
@@ -82,29 +48,6 @@ module.exports = {
             });
         });
     },
-    /**
-     * wrap streams and add an error listener  for each of them
-     * 
-     * @param  {string} eventName event to listen
-     * @return {stream}
-     */
-    tryCatch: function (eventName) {
-        var streams = [];
-        eventName = eventName || 'error';
-
-        var tryCatch = function (stream) {
-            streams.push(stream);
-            return stream;
-        };
-
-        tryCatch.catch = function (handler) {
-            _.each(streams, function (stream) {
-                stream.on(eventName, handler);
-            });
-        };
-
-        return tryCatch;
-    },
     
     asyncThrough: function (fn, source) {
         source = source || hgl;
@@ -123,7 +66,7 @@ module.exports = {
         });
     },
     map: function (fn, source) {
-        source = source || hgl;
+        source = source ? hgl(source) : hgl;
         return source.flatMap(hgl.wrapCallback(fn));
     }
 };

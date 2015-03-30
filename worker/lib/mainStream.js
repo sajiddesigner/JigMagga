@@ -42,6 +42,7 @@ module.exports = function (source, uploader, basePath, program) {
 
             data.message = messageHelper.extendMessage(data.message, program, data.config);
             data.bucketName = helper.generateBucketName(data, program, config.main.knox);
+            emitter.emit('send:message', data.message.origMessage);
             return data;
         }),
         hgl.errors(function (err) {

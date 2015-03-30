@@ -20,79 +20,108 @@ var es = require('event-stream'),
     media = require('./lib/media'),
     steal = require('./lib/steal.js'),
     builder = require('./lib/builder.js'),
-    program = require('commander'),
-    fs = require('fs');
+    program = require('commander');
 
 
-program
-    .version('1.0.1')
-    .option('-v, --versionnumber [value]', 'specify build version as float')
-    .option('-d, --basedomain [value]', 'specify the domain')
-    .option('-p, --page [value]', 'define the template to be generated can be a regex')
-    //TODO override locales from config
-    //.option('-I, --locale [value]', 'use given locale')
-    .option('-c, --cssgenerate [value]', 'generate only css', JSON.parse)
-    .option('-j, --jsgenerate [value]', 'generate only js', JSON.parse)
-    .option('-n, --namespace [value]', 'the namespace of your project')
-    .option('-b, --basePath [value]', 'the basepath to your page directory')
-    .option('-m, --minify [value]', 'minify css and js Default true', JSON.parse)
-    .option('-u, --upload', 'if upload is not enabled it will save files to disk')
-    .option('-x, --live [value]', 'will generate for live environment',  JSON.parse)
-    .option('-B, --bucket [value]', 'will override the config bucket and upload to this bucket you parse as value')
-    .option('-M, --uploadmedia [value]', 'Upload media files. Should not be used with css or js generate flags')
-    .parse(process.argv);
+function makeBuild(options, callback) {
+    var stream;
+    if (options.uploadmedia) {
+        var ps = es.pause();
+        stream = helper.createStreamWithSettings(options)
+            .pipe(configMerger.getConfig())
+            .pipe(media.getMediaSources())
+            .pipe(media.extractFilePaths())
+            .pipe(ps)
+            .pipe(media.upload(ps));
 
-
-
-if (program.uploadmedia) {
-    var ps = es.pause();
-    helper.createStreamWithSettings(program)
-        .pipe(media.getMediaSources())
-        .pipe(media.extractFilePaths())
-        .pipe(ps)
-        .pipe(media.upload(ps));
-}
-
-/**
- * Default Task without stream
- */
-
-else  {
-    if (program.upload) {
-        checkBucketEnv();
     }
 
-    helper.createStreamWithSettings(program)
-        .pipe(configMerger.getConfig())
-        .pipe(configMerger.getPagesThatMatchThePageParam())
-        .pipe(configMerger.getAllMergedConfigsFromPages())
-        .pipe(steal.getJSAndHTMLFilePath())
-        .pipe(helper.splitPagesIntoSingleStreams())
-        .pipe(helper.duplicatePagesForLocalesAndBrowsers())
-        .pipe(helper.bufferAllPagesAndWaitingForDoneEvent())
-        .pipe(steal.openPageAndGrepDependencies())
-        .pipe(builder.view.compile())
-        .pipe(steal.setCurrentSCSSVariables())
-        .pipe(builder.css.compileSCSS())
-        .pipe(builder.js.clean())
-        .pipe(builder.js.translate())
-        .pipe(builder.js.minify())
-        .pipe(builder.css.minify())
-        .pipe(builder.makePackage())
-        .pipe(helper.triggerDonePageEvent())
-        .pipe(helper.saveFileToDiskOrUpload())
-        .on('error', function(err) {
+    /**
+     * Default Task without stream
+     */
+
+    else  {
+
+        stream = helper.createStreamWithSettings(options)
+            .pipe(configMerger.getConfig())
+            .pipe(configMerger.getPagesThatMatchThePageParam())
+            .pipe(configMerger.getAllMergedConfigsFromPages())
+            .pipe(steal.getJSAndHTMLFilePath())
+            .pipe(helper.splitPagesIntoSingleStreams())
+            .pipe(helper.duplicatePagesForLocalesAndBrowsers())
+            .pipe(helper.bufferAllPagesAndWaitingForDoneEvent())
+            .pipe(steal.openPageAndGrepDependencies())
+            .pipe(builder.view.compile())
+            .pipe(steal.setCurrentSCSSVariables())
+            .pipe(builder.css.compileSCSS())
+            .pipe(builder.js.clean())
+            .pipe(builder.js.translate())
+            .pipe(builder.js.minify())
+            .pipe(builder.css.minify())
+            .pipe(builder.makePackage())
+            .pipe(helper.triggerDonePageEvent())
+            .pipe(helper.saveFileToDiskOrUpload());
+
+    }
+
+    if (callback) {
+        var isError;
+
+        var info = {};
+
+        stream.on('data', function (data) {
+            var parts = data.build.domain.split('/');
+            info.url = parts[parts.length - 1];
+            info.domain = parts[0];
+        });
+
+        stream.on('error', function (err) {
+            isError = true;
+            callback(err);
+        });
+
+        stream.on('end', function () {
+            if (!isError) {
+                callback(null, info);
+            }
+        });
+
+    } else {
+        stream.on('error', function (err) {
             console.error("ERROR: ", err);
             process.exit(1);
         });
-
+    }
 }
 
+if (require.main !== module) {
+    module.exports = makeBuild;
+} else {
+    program
+        .version('1.0.1')
+        .option('-v, --versionnumber [value]', 'specify build version as float')
+        .option('-d, --basedomain [value]', 'specify the domain')
+        .option('-p, --page [value]', 'define the template to be generated can be a regex')
+        //TODO override locales from config
+        //.option('-I, --locale [value]', 'use given locale')
+        .option('-c, --cssgenerate [value]', 'generate only css', JSON.parse)
+        .option('-j, --jsgenerate [value]', 'generate only js', JSON.parse)
+        .option('-n, --namespace [value]', 'the namespace of your project')
+        .option('-b, --basePath [value]', 'the basepath to your page directory')
+        .option('-m, --minify [value]', 'minify css and js Default true', JSON.parse)
+        .option('-u, --upload', 'if upload is not enabled it will save files to disk')
+        .option('-x, --live [value]', 'will generate for live environment',  JSON.parse)
+        .option('-B, --bucket [value]', 'will override the config bucket and upload to this bucket you parse as value')
+        .option('-M, --uploadmedia [value]', 'Upload media files. Should not be used with css or js generate flags')
+        .parse(process.argv);
 
-process.on('uncaughtException', function (err) {
-    process.stdout.write('error :' + err + err.stack);
-    process.exit(2);
-});
+    makeBuild(program);
+
+    process.on('uncaughtException', function (err) {
+        process.stdout.write('error :' + err + err.stack);
+        process.kill();
+    });
+}
 
 function checkBucketEnv(){
     var isLiveBucket = program.upload && program.bucket.indexOf('stage') === -1 && program.bucket.indexOf('beta') === -1;

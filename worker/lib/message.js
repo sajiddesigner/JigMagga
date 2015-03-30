@@ -1,7 +1,6 @@
 'use strict';
 
-var es = require('event-stream'),
-    fs = require('fs'),
+var fs = require('fs'),
     path = require('path'),
     walk = require('walk'),
     md5 = require('md5'),
@@ -13,7 +12,13 @@ var STATUS_CODES = require('./error').STATUS_CODES;
 var configMerge = require('./configMerge');
 var streamHelper = require('./streamHelper');
 var helper = require('./helper');
+var request = require('request');
 var generator = require('../generator/lib/generator');
+
+var config = require('../config');
+var projectConfig = config.main;
+
+var sendToDoneTopic = require('./kafka')(config.kafka).sendToDoneTopic;
 
 var isPageInConfig = function (config, page) {
     return config.pages && config.pages[page];
@@ -74,6 +79,38 @@ var getIdValues = function (message) {
 
 var domainCache = {};
 
+var isDomainInDB = function (url, basedomain, callback) {
+    request.get(projectConfig.configStoreApiEndpoint, {
+        json: true,
+        qs: {url: url}
+    }, function (err, res) {
+        if (err) {
+            return callback(err);
+        }
+
+        callback(null, Boolean(res.body[0]));
+    });
+};
+
+/**
+ * if url is null and basedomain consists slashes put to the url
+ * the last part of basedomain
+ *
+ * @param  {{url: string, basedomain: string}} message incoming message
+ * @return {{url: string, basedomain: string}}
+ */
+var adjustMessageForDoneQueue = function (message) {
+    if (message.url !== null || message.basedomain.indexOf('/') === -1) {
+        return message;
+    }
+
+    var basedomain = message.basedomain.split('/');
+
+    message.basedomain = _.first(basedomain);
+    message.url = _.last(basedomain);
+    return message;
+};
+
 /**
  * look for domain folder based on base domain and exact domain
  *
@@ -115,10 +152,22 @@ var lookForDomain = function (basePath, message, callback) {
             return callback(error);
         }
         if (!result) {
-            return callback(new WorkerError('There is no such domain', message, null, STATUS_CODES.NO_SUCH_DOMAIN));
+            return isDomainInDB(domain, baseDomain, function (err) {
+                if (err) {
+                    return callback(new WorkerError('There is no such domain', message, null, STATUS_CODES.NO_SUCH_DOMAIN));
+                }
+                domainCache[cacheKey] = path.join(baseDomain, 'normal', domain);
+                callback(null, domainCache[cacheKey]);
+            });
         }
 
-        domainCache[cacheKey] = path.join(result, domain);
+        var res = path.join(result, domain);
+
+        if (res.indexOf('premium') !== -1) {
+            return callback(new WorkerError('Do not generate premium', message, null, STATUS_CODES.NO_SUCH_DOMAIN));
+        }
+
+        domainCache[cacheKey] = res;
         callback(null, domainCache[cacheKey]);
     });
 };
@@ -200,16 +249,17 @@ module.exports = {
     /**
      *
      * @param {ProcessRouter} queuePool
+     *
      * @return {*}
      */
-    assignMessageMethods: function (queuePool) {
+    assignMessageMethods: function (queuePool, log) {
         /**
          * returns stream that assign queueShift and onDone methods to each message from rabbit
          *
          * @param {{content: Buffer, properties: {contentType: string}}} data
          * @return {{message: object, key: string, queueShift: function}}
          */
-        return es.through(function (data) {
+        return streamHelper.asyncThrough(function (data, push, callback) {
             var message = data.message,
                 key = data.key;
 
@@ -222,16 +272,22 @@ module.exports = {
                 //by some service(backend, api or salesforce) and we have to publish it to done queue in order
                 //to notify them about page generation
                 if (_.isString(message.origin)) {
-                    queuePool.send('publish:amqpDoneQueue', message);
+                    queuePool.send('publish:amqpDoneQueue', adjustMessageForDoneQueue(message));
                 }
 
+                log('info', '[onDone] message done', message);
+
+                // send to kafka that message was handled
+
+                sendToDoneTopic(message);
                 //if worker is in "two-bucket-deploy" mode publish message for page that was generated
                 //to deploy queue
                 queuePool.send('publish:amqpDeployQueue', message);
 
                 generator.deleteCachedCall(data.key);
             };
-            this.emit('data', data);
+            push(null, data);
+            callback();
         });
     },
 
@@ -409,6 +465,19 @@ module.exports = {
 
             if (data.message.url && !helper.isUrlCorrect(data.message.url)) {
                 if (_.isFunction(data.queueShift)) {
+                    data.queueShift();
+                }
+                push(new WorkerError('something wrong with message url', data.message));
+                return next();
+            }
+
+            var basedomain = data.message.basedomain;
+
+            if(!data.message.url && basedomain.indexOf('/') !== -1 &&
+                !helper.isDomainCorrect(_.last(basedomain.split('/')))) {
+
+                if (_.isFunction(data.queueShift)) {
+
                     data.queueShift();
                 }
                 push(new WorkerError('something wrong with message url', data.message));

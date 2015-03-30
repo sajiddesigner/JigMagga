@@ -60,7 +60,7 @@ var compiler = function(options, callback) {
         }
 
         var type = filename.substring(filename.lastIndexOf('.') + 1, filename.length);
-        var text = fileContent || fs.readFileSync(filename).toString();
+        var text = fileContent || fs.readFileSync(path.join(__dirname, '../../..', filename)).toString();
         // Create an id from the normalized filename
         var id = can.view.toId(normalizer(filename));
         // TODO throw error if type is not registered

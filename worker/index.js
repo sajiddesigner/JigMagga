@@ -32,7 +32,10 @@ var logger = require('./lib/logger'),
     error = require('./lib/error'),
     messageSource = require('./lib/messageSource'),
     messageStorage = require('./lib/message').storage,
-    TimeDiff = require('./lib/timeDiff');
+    warehouseFormatter = require('./lib/warehouseFormatter'),
+    sendToWarehouse = require('./lib/kafka')(config.kafka).sendToWarehouse(warehouseFormatter.statusCheckerFormatter),
+    TimeDiff = require('./lib/timeDiff'),
+    healthServer = require('./lib/healthServer');
 
 // obtain application arguments by parsing command line
 var program = parseArguments(process.argv);
@@ -61,18 +64,17 @@ if (program.queue) {
     var queuePool = new ProcessRouter(amqpProcess);
 }
 
-var uploaderRouter,
-    uploader;
+var uploaderRouter;
 
 var workerErrorHandler = error.getWorkerErrorHandler(log, queuePool, messageStorage, program);
 
 var uploaderRoutes = {
-    'message:uploaded': function (key) {
-
+    'message:uploaded': function (data) {
+        var key = data.key;
         messageStorage.upload(key);
 
         generatorStream.emit('message:uploaded', key);
-
+        sendToWarehouse('upload', data.message);
         log('message uploaded %s', key);
     },
     error: workerErrorHandler
@@ -81,12 +83,11 @@ var uploaderRoutes = {
 
 // Creates an uploader child process,
 // creates a router for them
-helper.createChildProcesses(args, function (err, result) {
+helper.createSubProcess(__dirname + '/uploader/index.js', args, function (err, uploader) {
     if (err) {
         throw new Error(err);
     }
 
-    uploader = result.uploader;
     uploaderRouter = new ProcessRouter(uploader);
 
     // add pipe handler a function that should be executed on pipe
@@ -115,9 +116,14 @@ helper.createChildProcesses(args, function (err, result) {
 
     main.on('send:message', function (message) {
         log('send to generator', message);
+        sendToWarehouse('new', message);
     });
 
-    main.on('error:message', workerErrorHandler);
+    main.on('error:message', _.compose(workerErrorHandler, function (err) {
+        sendToWarehouse('error', err);
+        return err;
+    }));
+
     var exitHandler = error.getExitHandler(log, [uploader, amqpProcess]);
 
     process.on('exit', exitHandler);
@@ -139,4 +145,8 @@ if (config.main.memwatch) {
     memwatch.on('leak', function(info) {
         log('warn', '[MEMORY:LEAK] %j', info, {memoryLeak: true});
     });
+}
+
+if (config.main.healthServer) {
+    healthServer(config.main.healthServer);
 }

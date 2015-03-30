@@ -14,7 +14,6 @@ var logger;
 var graylogConfig;
 var graylogTransport;
 
-
 /*
     An example of the graylog setting in the config file
 
@@ -131,7 +130,7 @@ module.exports = function (component, metadata, processArguments) {
         }
 
         if (_.isPlainObject(meta)) {
-            meta = _.assign(meta, metadata);
+            meta = _.assign({}, meta, metadata);
             args.unshift(meta);
         } else {
             args.push(meta);
