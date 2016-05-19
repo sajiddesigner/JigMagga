@@ -58,6 +58,7 @@
                     sassMap = sassMap.replace(/"([^\/"']+)":/g, "$1: ");
                     sassMap = sassMap.replace(/"([^"']+(px|%))"/g, "$1");
                     sassMap = sassMap.replace(/\s*\B(\.)/g, " ");
+                    sassMap = sassMap.replace(/\(\s*?\)/g, "null");
 
                     sass += prefix + sassMap + suffix;
                 }
