@@ -334,7 +334,7 @@ module.exports = {
             if (err) {
                 return callback(err);
             }
-            callback(res);
+            callback(null, res);
         });
     },
 

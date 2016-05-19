@@ -63,6 +63,10 @@ steal({id: './gettext.js', ignore: true}, "./sprintf.js",
                         .replace(/_\(\s*['"]([^'"]+)(['"])\s*\)/gm, function (_match, msgid, quote) {
                             return quote + win.gettext.gettext(msgid).replace(quoteRegex[quote], "\\'") + quote;
                         })
+                        //// new
+                        .replace(/_\(([-a-z0-9]+)\)/gm, function (_match, msgid) {
+                            return win.gettext.gettext(msgid).replace('"', '\\"');
+                        })
                         .replace(/_\(\s*['"]([^'"]+)(['"])\s*,/gm, function (_match, msgid, quote, vars) {
                             return " sprintf(" + quote + win.gettext.gettext(msgid).replace(quoteRegex[quote], "\\'") + quote + ", ";
                         })

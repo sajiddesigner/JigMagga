@@ -387,7 +387,10 @@ exports.generatePage = function (origConfig, callback) {
         html = "",
         predefinedVarString;
 
-
+    config = JSON.stringify(config)
+    config = JSON.parse(config.replace(/_\(([-a-z0-9]+)\)/gm, function (_match, msgid) {
+        return gt._(msgid).replace('"', '\\"');
+    }));
 
     if (config["child-page-path"]) {
         config["child-page-path"] = _.map(config["child-page-path"], function (page) {

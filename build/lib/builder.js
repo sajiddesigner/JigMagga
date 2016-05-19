@@ -163,6 +163,7 @@ var builder = {
             };
         }
     },
+
     js: {
         translate: function () {
             return es.map(function (data, callback) {
@@ -171,7 +172,7 @@ var builder = {
                         localePath = data.build.stealConfig[namespace].localePath;
                     stealLib.stealAFile(localePath, data, function (err, dataNew, window) {
                         async.mapSeries(data.build.dependencies, function (item, cb) {
-                            if (item.buildType === "js") {
+                            if (item.buildType === "js" || item.buildType === "conf") {
                                 window.gettext.textdomain(data.build.locale);
                                 item.text = window.replaceGettextUnderscore(item.text);
                             }

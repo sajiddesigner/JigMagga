@@ -494,6 +494,10 @@
                 //load PO file before js includes only for development ENV
                 if (!steal.config("isBuild") && steal.config("domain") !== "default") {
                     steal(config.localePath, function () {
+                        config = JSON.stringify(config)
+                        config = JSON.parse(config.replace(/_\(([-a-z0-9]+)\)/gm, function (_match, msgid) {
+                            return window._(msgid).replace('"', '\\"');
+                        }));
                         steal.apply(steal, config.includes);
                    });
                 } else {
