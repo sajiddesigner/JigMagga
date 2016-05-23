@@ -309,7 +309,7 @@ module.exports = function (grunt) {
             server: {
                 options: {
                     keepalive: true,
-                    open: true,
+                    open: false,
                     hostname: "localhost",
                     middleware: function (connect, options, middlewares) {
 
@@ -343,15 +343,17 @@ module.exports = function (grunt) {
                             // compile scsss file on server side (testing phantom)
                             else if (req.url.indexOf("/sass/compile") !== -1) {
                                 sass.render({
-                                    data: req.body.scss,
-                                    success: function (css) {
-                                        res.end(css);
-                                    },
-                                    error: function (error) {
-                                        console.log(error);
-                                        res.end("");
-                                    }
-                                });
+                                    data: req.body.scss
+                                },
+                                function(error, result) {
+                                  if (error) {
+                                    console.log(error)
+                                    res.end('')
+                                  } else {
+                                    res.end(result.css)
+                                  }
+                                }
+                              )
                             }
                             // check default directory for html file
                             else if (req.url && req.url.search(/\.[s]{0,1}html/) !== -1) {

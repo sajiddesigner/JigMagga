@@ -119,7 +119,6 @@
     "uglify-js": "~2.4.15",
     "walk": "~2.3.3",
     "wd": "^0.3.11",
-    "winston": "~0.7.3",
-    "winston-posix-syslog": "0.0.7"
+    "winston": "~0.7.3"
   }
 }
