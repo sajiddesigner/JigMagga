@@ -23,7 +23,7 @@ var es = require('event-stream'),
     program = require('commander'),
     fs = require('fs');
 
-
+// TODO deprecated since webpack? remove entire build folder
 program
     .version('1.0.1')
     .option('-v, --versionnumber [value]', 'specify build version as float')
@@ -90,5 +90,3 @@ process.on('uncaughtException', function (err) {
     process.stdout.write('error :' + err + err.stack);
     process.kill();
 });
-
-
