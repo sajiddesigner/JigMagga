@@ -85,7 +85,7 @@
     "can": "^2.3.0-beta.1",
     "cheerio": "~0.17.0",
     "clean-css": "~2.2.12",
-    "commander": "~2.3.0",
+    "commander": "^2.3.0",
     "css-raw-loader": "^0.1.1",
     "deep-extend": "~0.2.10",
     "ejs": "~1.0.0",
@@ -96,15 +96,15 @@
     "git-wrapper": "~0.1.1",
     "handlebars": "^2.0.0",
     "headless": "^1.0.0",
-    "highland": "^2.4.0",
+    "highland": "^2.8.1",
     "http-get": "~0.5.10",
     "jig-translate-loader": "git+ssh://git@git.takeaway.com:frontend/build-tools.git#jig-translate-loader",
     "jmUtil": "yourdelivery/JigMaggerUtilities",
     "jquery": "^2.1.4",
     "jsdom": "~0.11.1",
-    "konphyg": "~1.4.0",
+    "konphyg": "^1.4.0",
     "loader-utils": "^0.2.15",
-    "lodash": "~2.4.1",
+    "lodash": "^2.4.2",
     "longjohn": "~0.2.4",
     "mime": "~1.2.11",
     "mustache": "~0.8.2",
@@ -125,6 +125,6 @@
     "uglify-js": "~2.4.15",
     "walk": "~2.3.3",
     "wd": "^0.3.11",
-    "winston": "~0.7.3"
+    "winston": "^0.7.3"
   }
 }

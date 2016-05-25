@@ -4,7 +4,7 @@ var _ = require('lodash');
 var winston = require('winston');
 var config = require('../config');
 
-require('winston-posix-syslog');
+// require('winston-posix-syslog'); // unable to build with newer node
 /**
  * capitalize first letter
  * @param {String} word
