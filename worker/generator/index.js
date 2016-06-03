@@ -9,7 +9,7 @@ var EventEmitter = require('events').EventEmitter,
     format = require('util').format,
     fsExtra = require('fs-extra'),
     util = require('util'),
-    fs = require('fs'),
+    fs = require('fs-extra'),
     async = require('async'),
     _ = require('lodash'),
     path = require('path'),
@@ -35,6 +35,11 @@ var messageStream = stream.duplex();
 var handleError = function (text, data) {
     messageStream.emit('err', new WorkerError(text, data.message.origMessage, data.key));
 };
+
+// cleanup old build
+fs.removeSync('./yd/build')
+console.log('Removed build folder')
+
 
 var emitter = new EventEmitter();
 emitter.on('call:parsing', function (name, config) {
