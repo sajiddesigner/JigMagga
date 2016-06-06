@@ -483,10 +483,12 @@ exports.generatePage = function (origConfig, callback) {
         url += ".html";
         var urlWithoutSlashes = url.replace(/^\//, '').replace(/\//g, "_");
 
-        filename = config["upload-worker"] ?
-            saveDiskPath + "/production." + urlWithoutSlashes :
-            path.join('./yd/build', url)
-            // path.join(config.pagePath, "production." + urlWithoutSlashes);
+        // filename = config["upload-worker"] ?
+        //     saveDiskPath + "/production." + urlWithoutSlashes :
+        //     path.join(config.pagePath, "production." + urlWithoutSlashes);
+
+        filename = path.join('./yd/build', url)
+        console.log(filename)
 
         callback(null, {
             path: filename,

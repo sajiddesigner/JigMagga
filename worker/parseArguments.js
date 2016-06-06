@@ -37,6 +37,7 @@ module.exports = function (processArgs) {
         .option('-P, --prefetch <n>', 'amount of prefetched messages from queue, makes sens only wirh -q', Number)
         .option('--longjohn', 'enable longjohn module for stack traces')
         .option('--tag [value]', 'allows to filter logs from current worker')
+        .option('--clean', 'Removes yd/build directory before starting')
         .parse(processArgs);
 
     return args;

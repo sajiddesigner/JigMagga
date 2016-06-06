@@ -36,11 +36,6 @@ var handleError = function (text, data) {
     messageStream.emit('err', new WorkerError(text, data.message.origMessage, data.key));
 };
 
-// cleanup old build
-fs.removeSync('./yd/build')
-console.log('Removed build folder')
-
-
 var emitter = new EventEmitter();
 emitter.on('call:parsing', function (name, config) {
     log('Parsing call for jig %s config: %j', name, config, {api:true});

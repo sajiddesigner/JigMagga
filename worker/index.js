@@ -20,7 +20,8 @@
 
 var _ = require('lodash'),
     path = require('path'),
-    parseArguments = require('./parseArguments');
+    parseArguments = require('./parseArguments'),
+    fs = require('fs-extra');
 
 var config = require('./config');
 
@@ -39,6 +40,12 @@ var program = parseArguments(process.argv);
 
 var args = _.clone(process.argv).splice(2);
 var log = logger('worker',  {basedomain: program.basedomain}, program);
+
+// cleanup old build
+if (program.clean) {
+  fs.removeSync('./yd/build')
+  console.log('Removed build folder')
+}
 
 var timeDiff = new TimeDiff(log);
 var startTimeDiff = timeDiff.create('start');
