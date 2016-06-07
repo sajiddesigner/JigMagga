@@ -1,0 +1,7 @@
+[
+    {
+        "method":"GET",
+        "uri":"/some/uri/{param}",
+        "data":"//namespace/path/to/fixture/data.json"
+    }
+]

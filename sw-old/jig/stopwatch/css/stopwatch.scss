@@ -1,0 +1,161 @@
+@import 'sw/media/css/sw-core.scss';
+
+
+
+/* ##################################################################################################################################
+   ########################################################################## sw-jig-stopwatch.scss #################################
+   ################################################################################################################################## */
+
+.sw-jig-stopwatch-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    margin: 50px 0 0;
+    border: 10px solid #aaa;
+    border-radius: 100%;
+    @include sw-box-sizing;
+    background: red;
+}
+
+.sw-jig-stopwatch-wrapper:after {
+    content: '';
+    padding-top: 100%;
+    display: block;
+}
+
+.sw-jig-stopwatch-watch {
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    border: 10px solid #fff;
+    border-radius: 100%;
+    background: #ddd;
+}
+
+.sw-jig-stopwatch button {
+    position: absolute;
+    z-index: 1;
+    width: 30%;
+    margin: 0 0 0 -15%;
+    padding: 5px 20px 30px;
+    color: #fff;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: center;
+    cursor: pointer;
+    // add border-radius here
+    border-radius: $css-radius;
+    // add colorswitch here (switch background below)
+    @if (colorswitch == "default") {
+        background: #0098D0;
+    } @else {
+        background: $color-corporate;
+    }
+}
+
+.sw-jig-stopwatch-watch-start {
+    top: -35px;
+    left: 50%;
+}
+
+.sw-jig-stopwatch-watch-stop {
+    top: 20px;
+    left: 85%;
+    @include sw-transform(rotate(42deg));
+}
+
+.sw-jig-stopwatch-watch-reset {
+    top: 20px;
+    left: 15%;
+    @include sw-transform(rotate(-42deg));
+}
+
+.sw-jig-stopwatch-watch-loader {
+    display: none;
+}
+
+.sw-jig-stopwatch-watch-loader.active {
+    display: block;
+    position: absolute;
+    top: 5%;
+    left: 50%;
+    width: 50px;
+    height: 50px;
+    margin: 0 0 0 -25px;
+    font-size: 50px;
+    // add colorswitch here (switch color below)
+    @if (colorswitch == "default") {
+        color: #0098D0;
+    } @else {
+        color: $color-corporate;
+    }
+}
+
+.sw-jig-stopwatch-watch-time,
+.sw-jig-stopwatch-watch-laps {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    margin: auto;
+    background: #fff;
+    border: 2px solid #ccc;
+    font-family: "Orbitron", sans-serif;
+    overflow-x: hidden;
+    // add border-radius here
+    border-radius: $css-radius;
+
+}
+
+.sw-jig-stopwatch-watch-time {
+    width: 60%;
+    top: 0;
+    height: 10%;
+    padding: 20px;
+    font-size: 36px;
+    line-height: 1.2;
+    text-align: center;
+    z-index: 9;
+    // add transition here
+    @include sw-transition();
+}
+
+.sw-jig-stopwatch-watch-time.active {
+    top: -30%;
+}
+
+.sw-jig-stopwatch-watch-laps {
+    width: 50%;
+    top: 0;
+    height: 0px;
+    font-size: 14px;
+    line-height: 1.4;
+    text-align: left;
+    padding: 0;
+    overflow-y: scroll;
+    z-index: 8;
+    // add transition here
+    @include sw-transition();
+
+}
+
+.sw-jig-stopwatch-watch-laps.active {
+    top: 30%;
+    height: 30%;
+    padding: 5px;
+}
+
+.sw-jig-stopwatch-watch-laps ol {
+    list-style-type: decimal-leading-zero;
+    list-style-position: inside;
+}
+
+.sw-jig-stopwatch-watch-laps span {
+    @include sw-truncate;
+    float: right;
+    width: 80%;
+    text-align: right;
+}

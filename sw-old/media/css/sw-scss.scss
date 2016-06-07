@@ -1,0 +1,172 @@
+/*
+ * Sprites
+ **********************************************************/
+
+$sprite: url('/put/your/sprite/here.png');
+
+/*
+ * Colors
+ **********************************************************/
+
+$color-corporate: #e00;
+$color-default: #555;
+
+$color-white: #fff;
+$color-black: #000;
+$color-grey-light: #ccc;
+
+$color-blue-light: #59d;
+$color-blue-dark: #26a;
+
+$color-red-light: #f44;
+$color-red-dark: #c11;
+
+$color-green-light: #6b3;
+$color-green-dark: #380;
+
+$color-yellow-light: #ff6;
+$color-yellow-dark: #fc0;
+
+/*
+ * Fonts
+ **********************************************************/
+
+/*
+ * Icon Fonts
+ **********************************************************/
+
+@font-face {
+    font-family: 'fontello';
+    src: url('/sw/media/fonts/fontello.eot');
+    src: url('/sw/media/fonts/fontello.eot#iefix') format('embedded-opentype'),
+    url('/sw/media/fonts/fontello.woff') format('woff'),
+    url('/sw/media/fonts/fontello.ttf') format('truetype'),
+    url('/sw/media/fonts/fontello.svg#fontello') format('svg');
+}
+
+
+$font-family-primary: 'Roboto', sans-serif;
+$font-family-secondary: 'Roboto Condensed', sans-serif;
+$font-weight-normal: 400;
+$font-weight-semibold: 500;
+$font-weight-bold: 700;
+
+/*
+ * CSS Details
+ **********************************************************/
+
+$css-radius: 5px;
+
+/*
+ * Mixins
+ **********************************************************/
+
+@mixin sw-truncate() {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/*
+ * Prefix Mixins
+ **********************************************************/
+
+@mixin sw-box-sizing {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+@mixin sw-icon {
+    font-family: fontello;
+    font-weight: normal;
+    line-height: 1;
+}
+
+@mixin sw-appearance {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+@mixin sw-user-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+@mixin sw-gradient($bg1, $bg2) {
+    background: $bg1;
+    background: -webkit-linear-gradient(top, $bg1 0%, $bg2 100%);
+    background:    -moz-linear-gradient(top, $bg1 0%, $bg2 100%);
+    background:      -o-linear-gradient(top, $bg1 0%, $bg2 100%);
+    background:   linear-gradient(to bottom, $bg1 0%, $bg2 100%);
+}
+
+@mixin sw-transition($transition: all 0.3s linear) {
+    -webkit-transition: $transition;
+    -moz-transition: $transition;
+    -o-transition: $transition;
+    transition: $transition;
+}
+
+@mixin sw-transition-double($transition1, $transition2) {
+    -webkit-transition: $transition1, $transition2;
+    -moz-transition: $transition1, $transition2;
+    -o-transition: $transition1, $transition2;
+    transition: $transition1, $transition2;
+}
+
+@mixin sw-transform($transform) {
+    -webkit-transform: $transform;
+    -moz-transform: $transform;
+    -ms-transform: $transform;
+    -o-transform: $transform;
+    transform: $transform;
+}
+
+@mixin sw-animation($animation) {
+    -webkit-animation: $animation;
+    -moz-animation: $animation;
+    animation: $animation;
+}
+
+@mixin sw-opacity($opacity: 0.5) {
+    $opperc: $opacity * 100;
+    filter: "alpha(opacity=${opperc})"; /* IE 7 */
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(opacity=${opperc})"; /* IE 8 */
+    opacity: $opacity;
+}
+
+
+/*
+ * Animations
+ **********************************************************/
+
+@-webkit-keyframes sw-loader {
+    0% {
+        @include sw-transform(rotate(0deg));
+    }
+    100% {
+        @include sw-transform(rotate(360deg));
+    }
+}
+
+@-moz-keyframes sw-loader {
+    0% {
+        @include sw-transform(rotate(0deg));
+    }
+    100% {
+        @include sw-transform(rotate(360deg));
+    }
+}
+
+@keyframes sw-loader {
+    0% {
+        @include sw-transform(rotate(0deg));
+    }
+    100% {
+        @include sw-transform(rotate(360deg));
+    }
+}

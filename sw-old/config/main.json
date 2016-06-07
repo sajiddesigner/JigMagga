@@ -1,0 +1,39 @@
+{
+    "knox": {
+        "S3_KEY": "",
+        "S3_SECRET": "",
+        "S3_BUCKET": "",
+        "END_POINT": "",
+        "port": 80,
+        "buckets": {
+            "live": {},
+            "stage": {}
+        }
+    },
+
+    "skipDomains": [],
+
+    "logger": {
+        "folder": "worker/logs",
+        "file": {
+            "maxsize": 1024000,
+            "maxFiles": 5,
+            "json": false
+        },
+        "console": {
+            "json": false,
+            "colorize": true
+        },
+        "customLevels": {
+            "success": 8,
+            "fail": 9
+        },
+        "colors": {
+            "info": "blue",
+            "success": "green",
+            "fail": "red"
+        },
+        "defaultLogLevel": "info"
+    },
+    "memwatch": false
+}

@@ -1,0 +1,24 @@
+
+{
+    "css": [
+        {"from": "media/css/**"}
+    ],
+    "img": [
+        {"from": "media/img/**"}
+    ],
+    "robots": {
+        "from": "page/<%= domain %>/robots.txt",
+        "to": "robots.txt",
+        "required": true
+    },
+    "sitemap": {
+        "from": "page/<%= domain %>/sitemap.xml",
+        "to": "sitemap.xml"
+    },
+    "payment": {
+        "from": "page/<%= domain %>/config.json",
+        "to": "/config/config.json",
+        "required": true
+    }
+}
+

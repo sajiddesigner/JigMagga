@@ -1,0 +1,1 @@
+steal('./index.conf');

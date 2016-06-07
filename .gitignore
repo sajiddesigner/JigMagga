@@ -26,6 +26,9 @@ worker/config/*
 worker/logs/*.log
 worker/logs/*.heapsnapshot
 coverage
+newrelic.js
+newrelic_agent.log
 npm-debug.log
-db
-bus
+ta
+sw
+sw

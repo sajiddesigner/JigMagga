@@ -1,0 +1,15 @@
+@import 'sw/media/css/sw-scss';
+
+.sw-jig-header {
+    position: relative;
+    height: 50px;
+    background: $color-corporate;
+    padding: 10px;
+}
+
+
+.sw-header-logo{
+    font-family: Orbitron;
+    font-size: 20px;
+    color: #fff9d6;
+}
