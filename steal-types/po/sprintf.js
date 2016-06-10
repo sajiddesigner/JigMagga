@@ -161,3 +161,5 @@ function printf() {
     while (i < args.length) args[i] = 'a[' + (i++) + ']';
     document.write(eval('sprintf(' + args + ')'));
 }
+
+module.exports = sprintf
